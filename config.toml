@@ -1,0 +1,9 @@
+# Spendwise — configuration (Python 3.13 stdlib tomllib reads this natively)
+# Copy and edit; no .env or third-party config packages needed.
+
+[database]
+host     = "localhost"
+port     = 5432
+name     = "expense_tracker"
+user     = "postgres"
+password = "sqldatabase"

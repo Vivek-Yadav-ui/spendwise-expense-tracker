@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spendwise — Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- ── Sidebar ──────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">💸</span>
+      <span class="brand-name">Spendwise</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">⬡</span> Dashboard
+      </button>
+      <button class="nav-item" data-view="expenses">
+        <span class="nav-icon">≡</span> Expenses
+      </button>
+      <button class="nav-item" data-view="analytics">
+        <span class="nav-icon">◎</span> Analytics
+      </button>
+      <button class="nav-item" data-view="categories">
+        <span class="nav-icon">◈</span> Categories
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-month" id="sidebarMonth"></div>
+      <div class="sidebar-total" id="sidebarTotal">₹0.00</div>
+      <div class="sidebar-label">spent this month</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      <button class="btn btn-primary" id="addExpenseBtn">+ Add Expense</button>
+    </header>
+
+    <!-- ── Dashboard View ──────────────────────────────────────── -->
+    <section class="view active" id="view-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card accent">
+          <div class="stat-label">This Month</div>
+          <div class="stat-value" id="statMonth">₹0.00</div>
+          <div class="stat-sub" id="statMonthCount">0 transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Today</div>
+          <div class="stat-value" id="statToday">₹0.00</div>
+          <div class="stat-sub">so far</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Top Category</div>
+          <div class="stat-value" id="statTopCat">—</div>
+          <div class="stat-sub" id="statTopCatAmt"></div>
+        </div>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div class="section-header">
+        <h2 class="section-title">By Category <span class="section-sub">this month</span></h2>
+      </div>
+      <div class="cat-breakdown" id="catBreakdown"></div>
+
+      <!-- Recent -->
+      <div class="section-header" style="margin-top:2rem">
+        <h2 class="section-title">Recent Expenses</h2>
+        <button class="link-btn" data-view="expenses">View all →</button>
+      </div>
+      <div class="expense-list" id="recentList"></div>
+    </section>
+
+    <!-- ── Expenses View ──────────────────────────────────────── -->
+    <section class="view" id="view-expenses">
+      <div class="filter-bar">
+        <input class="filter-input" type="text"  id="searchInput"   placeholder="Search expenses…" />
+        <input class="filter-input" type="date"  id="filterStart"   />
+        <input class="filter-input" type="date"  id="filterEnd"     />
+        <select class="filter-input"             id="filterCategory">
+          <option value="">All categories</option>
+        </select>
+        <button class="btn btn-ghost" id="clearFilters">Clear</button>
+      </div>
+      <div class="expense-list" id="expenseList"></div>
+      <div class="empty-state hidden" id="emptyExpenses">
+        <div class="empty-icon">🪣</div>
+        <p>No expenses found.<br>Add one with the button above.</p>
+      </div>
+    </section>
+
+    <!-- ── Analytics View ────────────────────────────────────── -->
+    <section class="view" id="view-analytics">
+      <div class="analytics-grid">
+        <div class="card">
+          <h3 class="card-title">Spending by Category</h3>
+          <div class="donut-wrap">
+            <canvas id="donutChart" width="220" height="220"></canvas>
+            <div class="donut-center">
+              <div class="donut-total" id="donutTotal">₹0</div>
+              <div class="donut-label">total</div>
+            </div>
+          </div>
+          <div class="chart-legend" id="donutLegend"></div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">6-Month Trend</h3>
+          <canvas id="barChart" width="400" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Categories View ──────────────────────────────────── -->
+    <section class="view" id="view-categories">
+      <div class="cat-form card">
+        <h3 class="card-title">New Category</h3>
+        <div class="form-row">
+          <input class="form-input" type="text" id="catName"  placeholder="Category name" />
+          <input class="form-input" type="text" id="catIcon"  placeholder="Icon (emoji)" value="📦" maxlength="2" style="width:80px;text-align:center" />
+          <input class="form-input form-color" type="color" id="catColor" value="#6366f1" />
+          <button class="btn btn-primary" id="saveCatBtn">Add</button>
+        </div>
+      </div>
+      <div class="cat-grid" id="catGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- ── Add / Edit Expense Modal ─────────────────────────────── -->
+  <div class="modal-overlay hidden" id="expenseModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Expense</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input class="form-input" type="text" id="expTitle" placeholder="What did you spend on?" />
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label class="form-label">Amount (₹) *</label>
+          <input class="form-input" type="number" id="expAmount" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="form-group" style="flex:1">
+          <label class="form-label">Date *</label>
+          <input class="form-input" type="date" id="expDate" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-input" id="expCategory"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-input" id="expNotes" rows="2" placeholder="Optional note…"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cancelModal">Cancel</button>
+        <button class="btn btn-primary" id="saveExpense">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
