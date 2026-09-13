@@ -5,6 +5,7 @@ Requires: Python 3.13.6 · Flask 3.1.x · psycopg2-binary 2.9.x
 
 from __future__ import annotations
 
+import os
 import tomllib
 from contextlib import contextmanager
 from datetime import date, datetime
@@ -20,22 +21,21 @@ from flask import Flask, Response, jsonify, render_template, request
 app = Flask(__name__)
 
 
-# ── Config via pyproject.toml / config.toml (Python 3.11+ stdlib tomllib) ────
+# ── Config ────────────────────────────────────────────────────────────────────
 
 _CONFIG_FILE = Path(__file__).parent / "config.toml"
 
 def _load_config() -> dict[str, Any]:
-    if _CONFIG_FILE.exists():
+    if _CONFIG_FILE.exists():                   # local dev — reads config.toml
         with _CONFIG_FILE.open("rb") as f:
             return tomllib.load(f)
-    # Fallback defaults
-    return {
+    return {                                    # on Render — reads env vars
         "database": {
-            "host": "localhost",
-            "port": 5432,
-            "name": "expense_tracker",
-            "user": "postgres",
-            "password": "sqldatabase",
+            "host":     os.environ["DB_HOST"],
+            "port":     os.environ["DB_PORT"],
+            "name":     os.environ["DB_NAME"],
+            "user":     os.environ["DB_USER"],
+            "password": os.environ["DB_PASSWORD"],
         }
     }
 
@@ -70,7 +70,6 @@ def get_db():
 
 
 def _row(conn, query: str, params: tuple = ()) -> dict[str, Any]:
-    """Execute *query* and return the single row as a plain dict."""
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(query, params)
         return dict(cur.fetchone())
@@ -98,7 +97,7 @@ def _execmany(conn, query: str, seq) -> None:
         cur.executemany(query, seq)
 
 
-# ── CORS helper (no external package needed in Python 3.13) ──────────────────
+# ── CORS helper ───────────────────────────────────────────────────────────────
 
 def _cors(response: Response) -> Response:
     response.headers["Access-Control-Allow-Origin"]  = "*"
