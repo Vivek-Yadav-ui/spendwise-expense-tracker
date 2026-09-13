@@ -46,6 +46,14 @@ _DB  = _cfg["database"]
 # ── Database ──────────────────────────────────────────────────────────────────
 
 def _db_params() -> dict[str, Any]:
+    if os.environ.get("DB_HOST"):
+        return {
+            "host":     os.environ["DB_HOST"],
+            "port":     int(os.environ.get("DB_PORT", 5432)),
+            "dbname":   os.environ["DB_NAME"],
+            "user":     os.environ["DB_USER"],
+            "password": os.environ["DB_PASSWORD"],
+        }
     return {
         "host":     _DB["host"],
         "port":     int(_DB["port"]),
